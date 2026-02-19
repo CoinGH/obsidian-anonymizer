@@ -104,5 +104,5 @@ with tqdm(total=len(canvas_files), desc="Progress .canvas", colour="yellow") as 
         with open(current_file, "w", encoding='utf-8') as f:
             json.dump(canvas_data, f, ensure_ascii=False, indent=4)
         pbar_canvas.update(1)
-print(f"Changed {len(canvas_files)} links in .canvas files!\n", "."*64, "\nThanks for Using!!!")
+print(f"Changed {len(canvas_files)} links in .canvas files!\n", "."*64, "\nThanks for Using!!!\nCreated by CoinGH\n", "."*64)
 time.sleep(1.5)
