@@ -32,44 +32,40 @@ print("."*64)
 
 #Lists of links
 links = {}
-counter = 0
-all_note_names = set()
 
-with tqdm(total=len(md_files), desc="Progress") as pbar:
-
+with tqdm(total=len(md_files), desc="Progress") as pbar: #Progress Bar
+    #Filenames to Dictionary
     for md_file in md_files:
         note_name = md_file.stem
-        all_note_names.add(note_name)
-        pbar.update(1)
+        pbar.update(1) #Updating Progress Bar
 
-    for note_name in all_note_names:
         unique_id = uuid.uuid4().hex[:8]
-        new_name = f"file_{unique_id}.md"
+        new_name = f"file_{unique_id}"
         links[note_name] = new_name
-        counter += 1
 
 print(f"\nChanged {len(links)} links in .md files!")
 
+#Replacement Function
+def replacer(match):
+    og_link = match.group(1)
+    parts = og_link.split("|", 1)
+    target_note = parts[0]
+    if target_note in links:
+        return f"[[{links[target_note]}]]"
+    else:
+        return match.group(0)
+
+#Replace links in files
 for md_file in md_files:
     with open(md_file, "r", encoding='utf-8') as f:
         str1 = f.read()
-    def replacer(match):
-        og_link = match.group(1)
-        parts = og_link.split("|", 1)
-        target_note = parts[0]
-        if target_note in links:
-            return f"[[{links[target_note]}]]"
-        else:
-            return match.group(0)
 
     new_con = re.sub(r'\[\[(.*?)]]', replacer, str1)
-
     with open(md_file, "w", encoding='utf-8') as f:
         f.write(new_con)
 
-for md_file in md_files:
+# Replace file names
     og_name = md_file.stem
-
     if og_name in links:
         new_name = links[og_name]
         new_path = md_file.parent / f"{new_name}.md"
