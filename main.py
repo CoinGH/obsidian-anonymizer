@@ -9,6 +9,7 @@ import re
 import pathlib as pl
 from tqdm import tqdm
 import uuid
+import time
 
 #Introduction
 print("Hello user!\nThis program is making your markdown files - secure\nMade by CoinGH\n","."*64)
@@ -39,11 +40,11 @@ print("."*64)
 #Lists of links
 dictionary_of_links = {}
 
-with tqdm(total=len(md_files), desc="Progress") as pbar: #Progress Bar
+with tqdm(total=len(md_files), desc="Progress .md", colour="blue") as pbar_md: #Progress Bar
     #Filenames to Dictionary
     for current_file in md_files:
         note_name = current_file.stem
-        pbar.update(1) #Updating Progress Bar
+        pbar_md.update(1) #Updating Progress Bar
 
         unique_id = uuid.uuid4().hex[:8]
         new_filename = f"file_{unique_id}"
@@ -79,7 +80,7 @@ for current_file in md_files:
 
 print("."*64)
 
-#Save to JSON (dump)
+#Save results to JSON (dump)
 with open(path / "dictionary_prefs_md.json", "w", encoding='utf-8') as f:
     json.dump(dictionary_of_links, f, ensure_ascii=False, indent=4)
 print("Changes was saved in dictionary_prefs.json")
@@ -87,9 +88,21 @@ print("Changes was saved in dictionary_prefs.json")
 print("."*64)
 
 #For .canvas files
-for current_file in canvas_files:
-    with open(current_file, "r", encoding='utf-8') as f:
-        canvas_data = json.load(f)
-        for node in canvas_data["nodes"]:
-            if node["type"] == "text":
-                pass
+with tqdm(total=len(canvas_files), desc="Progress .canvas", colour="yellow") as pbar_canvas:
+    for current_file in canvas_files:
+        with open(current_file, "r", encoding='utf-8') as f:
+            canvas_data = json.load(f)
+            for node in canvas_data["nodes"]:
+                if node["type"] == "text":
+                    node["text"] = re.sub(r'\[\[(.*?)]]', replacer, node["text"])
+                elif node["type"] == "file":
+                    canvas_file_path = pl.PurePosixPath(node["file"])
+                    name_without_extension = canvas_file_path.stem
+                    if name_without_extension in dictionary_of_links:
+                        new_filename = dictionary_of_links[name_without_extension]
+                        node["file"] = str(canvas_file_path.with_name(new_filename))
+        with open(current_file, "w", encoding='utf-8') as f:
+            json.dump(canvas_data, f, ensure_ascii=False, indent=4)
+        pbar_canvas.update(1)
+print(f"Changed {len(canvas_files)} links in .canvas files!\n", "."*64, "\nThanks for Using!!!")
+time.sleep(1.5)
