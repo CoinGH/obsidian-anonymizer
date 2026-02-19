@@ -1,10 +1,16 @@
+# ♥♥♥♥♥♥♥   ♥♥♥♥♥♥♥♥
+# ♥         ♥
+# ♥         ♥   ♥♥♥♥♥
+# ♥         ♥        ♥
+# ♥♥♥♥♥♥♥   ♥♥♥♥♥♥♥♥
+
 import json
 import re
 import pathlib as pl
 from tqdm import tqdm
 import uuid
 
-#Indroduction
+#Introduction
 print("Hello user!\nThis program is making your markdown files - secure\nMade by CoinGH\n","."*64)
 
 #Searching for folder
@@ -31,49 +37,59 @@ print(str(len(canvas_files)) + " canvas files found!")
 print("."*64)
 
 #Lists of links
-links = {}
+dictionary_of_links = {}
 
 with tqdm(total=len(md_files), desc="Progress") as pbar: #Progress Bar
     #Filenames to Dictionary
-    for md_file in md_files:
-        note_name = md_file.stem
+    for current_file in md_files:
+        note_name = current_file.stem
         pbar.update(1) #Updating Progress Bar
 
         unique_id = uuid.uuid4().hex[:8]
-        new_name = f"file_{unique_id}"
-        links[note_name] = new_name
+        new_filename = f"file_{unique_id}"
+        dictionary_of_links[note_name] = new_filename
 
-print(f"\nChanged {len(links)} links in .md files!")
+print(f"\nChanged {len(dictionary_of_links)} links in .md files!")
 
 #Replacement Function
 def replacer(match):
-    og_link = match.group(1)
-    parts = og_link.split("|", 1)
-    target_note = parts[0]
-    if target_note in links:
-        return f"[[{links[target_note]}]]"
+    original_link = match.group(1)
+    parts = original_link.split("|", 1)
+    target_note_name = parts[0]
+    if target_note_name in dictionary_of_links:
+        return f"[[{dictionary_of_links[target_note_name]}]]"
     else:
         return match.group(0)
 
 #Replace links in files
-for md_file in md_files:
-    with open(md_file, "r", encoding='utf-8') as f:
-        str1 = f.read()
+for current_file in md_files:
+    with open(current_file, "r", encoding='utf-8') as f:
+        all_file_content = f.read()
 
-    new_con = re.sub(r'\[\[(.*?)]]', replacer, str1)
-    with open(md_file, "w", encoding='utf-8') as f:
-        f.write(new_con)
+    new_file_content = re.sub(r'\[\[(.*?)]]', replacer, all_file_content)
+    with open(current_file, "w", encoding='utf-8') as f:
+        f.write(new_file_content)
 
 # Replace file names
-    og_name = md_file.stem
-    if og_name in links:
-        new_name = links[og_name]
-        new_path = md_file.parent / f"{new_name}.md"
-        md_file.rename(new_path)
+    original_filename = current_file.stem
+    if original_filename in dictionary_of_links:
+        new_filename = dictionary_of_links[original_filename]
+        new_path = current_file.parent / f"{new_filename}.md"
+        current_file.rename(new_path)
 
 print("."*64)
 
 #Save to JSON (dump)
-with open(path / "links_prefs.json", "w", encoding='utf-8') as f:
-    json.dump(links, f, ensure_ascii=False, indent=4)
-print("Changes was saved in links_prefs.json")
+with open(path / "dictionary_prefs_md.json", "w", encoding='utf-8') as f:
+    json.dump(dictionary_of_links, f, ensure_ascii=False, indent=4)
+print("Changes was saved in dictionary_prefs.json")
+
+print("."*64)
+
+#For .canvas files
+for current_file in canvas_files:
+    with open(current_file, "r", encoding='utf-8') as f:
+        canvas_data = json.load(f)
+        for node in canvas_data["nodes"]:
+            if node["type"] == "text":
+                pass
