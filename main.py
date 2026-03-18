@@ -93,8 +93,9 @@ for current_file in md_files:
         all_file_content = f.read()
     new_file_content = re.sub(r'\[\[(.*?)]]', replacer, all_file_content)
     removing_aliases = re.sub(r'(?s)^---.*?---\n', '', new_file_content)
+    final_content = removing_aliases + f"\n\nContext | Original Folder Path (Context & Tags) -> {current_file.parent.relative_to(path).as_posix()}" # For me to save relative file path to the end of file
     with open(current_file, "w", encoding='utf-8') as f:
-        f.write(removing_aliases)
+        f.write(final_content)
 
 # Replace file names
     original_filename = current_file.stem
