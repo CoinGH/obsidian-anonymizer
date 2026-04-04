@@ -88,21 +88,29 @@ def replacer(match):
         return match.group(0)
 
 #Replace links in files
-for current_file in md_files:
-    with open(current_file, "r", encoding='utf-8') as f:
-        all_file_content = f.read()
-    new_file_content = re.sub(r'\[\[(.*?)]]', replacer, all_file_content)
-    removing_aliases = re.sub(r'(?s)^---.*?---\n', '', new_file_content)
-    final_content = removing_aliases + f"\n\nContext | Original Folder Path (Context & Tags) -> {current_file.parent.relative_to(path).as_posix()}" # For me to save relative file path to the end of file
-    with open(current_file, "w", encoding='utf-8') as f:
-        f.write(final_content)
+with open(path / 'AllInOne.md', 'w', encoding='utf-8') as f1:
+    for current_file in md_files:
+        with open(current_file, "r", encoding='utf-8') as f:
+            all_file_content = f.read()
+        new_file_content = re.sub(r'\[\[(.*?)]]', replacer, all_file_content)
+        removing_aliases = re.sub(r'(?s)^---.*?---\n', '', new_file_content)
+        final_content = removing_aliases + f"\n\nOriginal Folder Path for Context -> {current_file.parent.relative_to(path).as_posix()}"  # For me to save relative file path to the end of file
+        with open(current_file, "w", encoding='utf-8') as f:
+            f.write(final_content)
+        f1.write("\n" * 2)
 
-# Replace file names
-    original_filename = current_file.stem
-    if original_filename in dictionary_of_links:
-        new_filename = dictionary_of_links[original_filename]
-        new_path = current_file.parent / f"{new_filename}.md"
-        current_file.rename(new_path)
+        # Виправлено: беремо нову назву зі словника, або залишаємо стару, якщо її там немає
+        new_doc_name = dictionary_of_links.get(current_file.stem, current_file.stem)
+        f1.write(f"# File Name: {new_doc_name}\n\n")
+
+        f1.write(final_content)
+
+        # Виправлено відступ: перейменування має бути всередині циклу for
+        original_filename = current_file.stem
+        if original_filename in dictionary_of_links:
+            new_filename = dictionary_of_links[original_filename]
+            new_path = current_file.parent / f"{new_filename}.md"
+            current_file.rename(new_path)
 
 print("."*64)
 
